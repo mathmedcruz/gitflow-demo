@@ -8,7 +8,7 @@ A **release branch** é o coração do Git Flow. É onde a release **existe como
 develop  ─●──●──●──●──●──●───────────────●──────●──●──  (features continuam entrando)
                         │                │       └─ volta aqui (back-merge)
                         │                │
-                        └─► release/0.2.0 ─► master + tag v0.2.0
+                        └─► release/0.2.0 ─► main + tag v0.2.0
                                  │               (via PR com merge commit)
                                  └─ fixes de estabilização aqui
 ```
@@ -17,7 +17,7 @@ Três momentos:
 
 1. **Abertura** — corta de `develop` quando o escopo da release está definido.
 2. **Estabilização** — só bugfixes entram, deploy em staging via workflow.
-3. **Fechamento** — dois merges: em `master` (+ tag) e back-merge em `develop`.
+3. **Fechamento** — dois merges: em `main` (+ tag) e back-merge em `develop`.
 
 ---
 
@@ -44,7 +44,7 @@ git push -u origin release/0.2.0
 
 A versão está **no nome da branch**. O workflow [`deploy-release.yml`](../.github/workflows/deploy-release.yml) extrai `0.2.0` de `release/0.2.0` via `${GITHUB_REF_NAME#release/}` e deploya como `0.2.0-rc` em staging.
 
-**SemVer pelas Conventional Commits desde a última tag em `master`:**
+**SemVer pelas Conventional Commits desde a última tag em `main`:**
 
 - só `fix:` / `refactor:` / `chore:` → **PATCH** (`release/0.2.1`)
 - algum `feat:` → **MINOR** (`release/0.3.0`)
@@ -94,28 +94,28 @@ QA valida a RC. Bug encontrado → bugfix PR → merge em `release/0.2.0` → no
 
 ## 5) Fechamento: os dois merges (e é aqui que o Git Flow "doi")
 
-### Merge 1: `release/0.2.0 → master` (com **merge commit**, não squash)
+### Merge 1: `release/0.2.0 → main` (com **merge commit**, não squash)
 
 ```bash
-gh pr create -B master -H release/0.2.0 \
+gh pr create -B main -H release/0.2.0 \
   --title "release: 0.2.0" \
   --body "Release 0.2.0 — resumo das mudanças"
 ```
 
 - Aprovação + merge pela UI com **"Create a merge commit"** (NÃO squash).
-- O merge commit em `master` marca o "ponto de release" — é o que a tag vai referenciar.
+- O merge commit em `main` marca o "ponto de release" — é o que a tag vai referenciar.
 - 🔒 Deploy em production pausa pra aprovação no Environment.
 
 ### Taggear
 
 ```bash
-git checkout master
-git pull --rebase origin master
+git checkout main
+git pull --rebase origin main
 git tag -a v0.2.0 -m "Release 0.2.0"
 git push origin --tags
 ```
 
-O workflow [`deploy-master.yml`](../.github/workflows/deploy-master.yml) dispara no push (ou na criação da tag) e resolve `APP_VERSION` via `git describe --tags --exact-match`.
+O workflow [`deploy-main.yml`](../.github/workflows/deploy-main.yml) dispara no push (ou na criação da tag) e resolve `APP_VERSION` via `git describe --tags --exact-match`.
 
 ### Merge 2: back-merge `release/0.2.0 → develop`
 
@@ -154,7 +154,7 @@ COPY . .
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-No workflow (`deploy-master.yml`):
+No workflow (`deploy-main.yml`):
 
 ```yaml
 - id: v
@@ -173,7 +173,7 @@ def version():
     return {"version": APP_VERSION}
 ```
 
-Para RC em staging (`release/*`), o workflow injeta `APP_VERSION=0.2.0-rc` — distinguível de `v0.2.0` da tag em master.
+Para RC em staging (`release/*`), o workflow injeta `APP_VERSION=0.2.0-rc` — distinguível de `v0.2.0` da tag em main.
 
 ---
 
@@ -184,7 +184,7 @@ Para RC em staging (`release/*`), o workflow injeta `APP_VERSION=0.2.0-rc` — d
 2. Deploy RC em staging automaticamente
 3. QA → bug? → bugfix/* → PR pra release/0.2.0 → novo RC
 4. QA aprova
-5. PR release/0.2.0 → master (merge commit)
+5. PR release/0.2.0 → main (merge commit)
 6. git tag -a v0.2.0 → push --tags (deploy prod)
 7. PR release/0.2.0 → develop (back-merge)
 8. Delete release/0.2.0

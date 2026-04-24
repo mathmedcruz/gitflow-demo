@@ -2,7 +2,7 @@
 
 Este doc define **o padrão de commits, branches e PRs** para que o trabalho seja rastreado no Notion.
 
-A premissa: toda mudança **não trivial** nasce de uma página (card/ticket/doc) no Notion. O link pro Notion tem que aparecer no PR **e** no commit final que fica em `master`/`develop`, pra que a integração oficial [Notion ↔ GitHub](https://www.notion.so/help/github) faça o link bidirecional automaticamente.
+A premissa: toda mudança **não trivial** nasce de uma página (card/ticket/doc) no Notion. O link pro Notion tem que aparecer no PR **e** no commit final que fica em `main`/`develop`, pra que a integração oficial [Notion ↔ GitHub](https://www.notion.so/help/github) faça o link bidirecional automaticamente.
 
 ---
 
@@ -12,7 +12,7 @@ A integração oficial faz sync quando encontra uma **URL `notion.so`** em:
 
 1. **Título do PR** (opcional — só se couber sem ficar feio).
 2. **Corpo do PR** (✅ **aqui é obrigatório** — é onde colamos).
-3. **Mensagem de commit** (opcional, mas recomendado no commit de merge pra ficar no histórico de `master`).
+3. **Mensagem de commit** (opcional, mas recomendado no commit de merge pra ficar no histórico de `main`).
 
 Qualquer URL do formato abaixo funciona:
 
@@ -84,7 +84,7 @@ Referente a https://www.notion.so/... esta mudança adiciona...
 - `chore: back-merge release/X.Y.Z → develop` (é mecânico, não tem página no Notion).
 - `chore(release): v0.2.0` (tag de release — a página Notion é do épico, não da tag).
 
-O que importa é que o **commit final em `develop` ou `master`** (pós-squash/merge) tenha o trailer.
+O que importa é que o **commit final em `develop` ou `main`** (pós-squash/merge) tenha o trailer.
 
 ---
 
@@ -153,7 +153,7 @@ Refs: https://www.notion.so/.../Epic-Observabilidade-abcdef12...
 O workflow `pr-lint` **pula a validação** quando:
 
 - O PR tem a label `no-notion` (adicione manualmente se a mudança é infra/tooling interno sem ticket).
-- A branch de origem é `release/*` ou `hotfix/*` **indo pra `master`** (o link do Notion já está nos commits da feature/bugfix que formaram a release; o PR de release não precisa repetir).
+- A branch de origem é `release/*` ou `hotfix/*` **indo pra `main`** (o link do Notion já está nos commits da feature/bugfix que formaram a release; o PR de release não precisa repetir).
 - O PR é de back-merge (`chore: back-merge ...`).
 
 Pra todo resto — **feature → develop**, **bugfix → develop**, **bugfix → release/***  — é obrigatório.

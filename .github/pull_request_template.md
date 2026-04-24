@@ -15,7 +15,7 @@ Use `Refs:` para apenas linkar (sem fechar).
 Padrão completo: docs/07-tracking-notion.md
 
 Exceções (use label `no-notion` ou pule esta seção):
-- PR `release/* → master`, `hotfix/* → master` ou back-merge.
+- PR `release/* → main`, `hotfix/* → main` ou back-merge.
 - Mudanças internas de tooling sem card no Notion.
 -->
 
@@ -36,13 +36,13 @@ Closes: https://www.notion.so/
 - [ ] ♻️ Refactor (sem mudança de comportamento)
 - [ ] 📝 Docs
 - [ ] 🔧 Chore / build / CI
-- [ ] 🚀 Release (PR `release/X.Y.Z → master`)
-- [ ] 🔥 Hotfix (PR `hotfix/X.Y.Z → master` + back-merge em `develop`)
+- [ ] 🚀 Release (PR `release/X.Y.Z → main`)
+- [ ] 🔥 Hotfix (PR `hotfix/X.Y.Z → main` + back-merge em `develop`)
 
 ## 🔄 Destino
 
 - [ ] → `develop` (padrão pra features e fixes)
-- [ ] → `master` (release ou hotfix)
+- [ ] → `main` (release ou hotfix)
 - [ ] Preciso do back-merge em `develop` depois (release / hotfix)
 
 ## ✅ Checklist
