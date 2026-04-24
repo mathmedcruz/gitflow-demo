@@ -1,0 +1,88 @@
+name: PR lint
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  title:
+    name: Valida título do PR (Conventional Commits)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            hotfix
+            chore
+            docs
+            refactor
+            test
+            build
+            ci
+            perf
+            revert
+          requireScope: false
+          subjectPattern: ^[A-Z].*$
+          subjectPatternError: |
+            O assunto do PR deve começar com letra maiúscula.
+            Exemplo: "feat: Adiciona endpoint /status"
+
+  notion-link:
+    name: Valida link do Notion no corpo do PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verifica se precisa de link do Notion
+        id: needs-notion
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          TITLE: ${{ github.event.pull_request.title }}
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          if echo "$LABELS" | grep -q '"no-notion"'; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Motivo: PR tem label 'no-notion'."
+            exit 0
+          fi
+
+          # release/* ou hotfix/* -> master : não exige link (já veio dos PRs internos)
+          if [[ "$BASE_REF" == "master" ]] && [[ "$HEAD_REF" =~ ^(release|hotfix)/ ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Motivo: PR de $HEAD_REF -> master."
+            exit 0
+          fi
+
+          # back-merge (release/* -> develop) : não exige
+          if [[ "$BASE_REF" == "develop" ]] && [[ "$HEAD_REF" =~ ^(release|hotfix)/ ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Motivo: back-merge $HEAD_REF -> develop."
+            exit 0
+          fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Procura URL notion.so no corpo do PR
+        if: steps.needs-notion.outputs.skip != 'true'
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if [[ -z "$BODY" ]]; then
+            echo "::error::Corpo do PR está vazio. Inclua um link do Notion na seção '📎 Notion' ou adicione a label 'no-notion'."
+            exit 1
+          fi
+
+          # Aceita https://notion.so/... e https://www.notion.so/...
+          if echo "$BODY" | grep -qiE 'https?://(www\.)?notion\.so/[^[:space:]]+'; then
+            echo "✅ Link do Notion encontrado no corpo do PR."
+            echo "$BODY" | grep -oiE 'https?://(www\.)?notion\.so/[^[:space:]]+' | sed 's/^/  - /'
+          else
+            echo "::error::Nenhuma URL notion.so encontrada no corpo do PR."
+            echo "::error::Cole a URL da página do Notion na seção '📎 Notion' do template."
+            echo "::error::Ou, se o PR não tem rastreamento no Notion (tooling interno, etc), adicione a label 'no-notion'."
+            echo "::error::Detalhes: docs/07-tracking-notion.md"
+            exit 1
+          fi
