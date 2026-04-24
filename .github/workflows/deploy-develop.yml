@@ -1,0 +1,73 @@
+name: Deploy • develop
+
+on:
+  push:
+    branches: [develop]
+
+concurrency:
+  group: deploy-develop
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy para develop
+    runs-on: ubuntu-latest
+    environment:
+      name: develop
+      url: https://develop.exemplo.local
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Rodar testes
+        run: pytest -q
+
+      - name: Resolver versão
+        id: meta
+        run: |
+          VERSION=$(git describe --tags --always)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "sha_short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: 🚀 Simulando deploy para DEVELOP
+        env:
+          APP_ENV: develop
+          APP_VERSION: ${{ steps.meta.outputs.version }}
+          SHA: ${{ steps.meta.outputs.sha_short }}
+        run: |
+          echo "=============================================="
+          echo " Ambiente : $APP_ENV"
+          echo " Versão   : $APP_VERSION"
+          echo " Commit   : $SHA"
+          echo " Branch   : ${GITHUB_REF_NAME}"
+          echo "=============================================="
+          echo "→ build..."
+          sleep 1
+          echo "→ publicando artefato..."
+          sleep 1
+          echo "✅ Deploy para DEVELOP concluído."
+
+      - name: Resumo no GitHub
+        run: |
+          {
+            echo "### 🚀 Deploy DEVELOP"
+            echo ""
+            echo "- **Versão:** \`${{ steps.meta.outputs.version }}\`"
+            echo "- **Commit:** \`${{ steps.meta.outputs.sha_short }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

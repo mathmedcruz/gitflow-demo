@@ -1,0 +1,80 @@
+name: PR lint
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  # Título do PR não é validado (padrão atual: "[GFD-42] <descrição>").
+  # Conventional Commits ainda vale pros *commits* — é lá que mora a automação.
+  # Ver docs/07-tracking-notion.md.
+
+  notion-link:
+    name: Valida link do Notion no corpo do PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verifica se precisa de link do Notion
+        id: needs-notion
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          TITLE: ${{ github.event.pull_request.title }}
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          if echo "$LABELS" | grep -q '"no-notion"'; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Motivo: PR tem label 'no-notion'."
+            exit 0
+          fi
+
+          # release/* ou hotfix/* -> main : não exige link (já veio dos PRs internos)
+          if [[ "$BASE_REF" == "main" ]] && [[ "$HEAD_REF" =~ ^(release|hotfix)/ ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Motivo: PR de $HEAD_REF -> main."
+            exit 0
+          fi
+
+          # back-merge (release/* -> develop) : não exige
+          if [[ "$BASE_REF" == "develop" ]] && [[ "$HEAD_REF" =~ ^(release|hotfix)/ ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Motivo: back-merge $HEAD_REF -> develop."
+            exit 0
+          fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Procura referência ao Notion no corpo do PR
+        if: steps.needs-notion.outputs.skip != 'true'
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if [[ -z "$BODY" ]]; then
+            echo "::error::Corpo do PR está vazio. Inclua referência ao Notion na seção '📎 Notion' ou adicione a label 'no-notion'."
+            exit 1
+          fi
+
+          # Aceita qualquer um dos três formatos:
+          #   1. Magic word + Unique ID:   "closes GFD-42", "fixes GFD-42", "refs GFD-42", "part of GFD-42"
+          #   2. Trailer com Unique ID:    "Notion: GFD-42"
+          #   3. URL notion.so:            "https://www.notion.so/..."
+          MAGIC='(close[sd]?|fix(es|ed)?|resolve[sd]?|complet(e[sd]?|ing)|ref(s|erences)?|part of|related to|contributes to|towards)[[:space:]]+[A-Z][A-Z0-9]+-[0-9]+'
+          TRAILER='Notion:[[:space:]]+[A-Z][A-Z0-9]+-[0-9]+'
+          URL='https?://(www\.)?notion\.so/[^[:space:]]+'
+
+          if echo "$BODY" | grep -qiE "$MAGIC"; then
+            echo "✅ Magic word + Unique ID encontrado no corpo do PR."
+            echo "$BODY" | grep -oiE "$MAGIC" | sed 's/^/  - /'
+          elif echo "$BODY" | grep -qE "$TRAILER"; then
+            echo "✅ Trailer 'Notion: <ID>' encontrado no corpo do PR."
+            echo "$BODY" | grep -oE "$TRAILER" | sed 's/^/  - /'
+          elif echo "$BODY" | grep -qiE "$URL"; then
+            echo "✅ URL notion.so encontrada no corpo do PR (fallback)."
+            echo "$BODY" | grep -oiE "$URL" | sed 's/^/  - /'
+          else
+            echo "::error::Nenhuma referência ao Notion encontrada no corpo do PR."
+            echo "::error::Use uma magic word + Unique ID (ex.: 'Closes GFD-42') na seção '📎 Notion'."
+            echo "::error::Ou cole a URL completa da página (https://www.notion.so/...)."
+            echo "::error::Ou, se o PR não tem rastreamento no Notion (tooling interno, etc), adicione a label 'no-notion'."
+            echo "::error::Detalhes: docs/07-tracking-notion.md"
+            exit 1
+          fi

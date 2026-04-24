@@ -1,0 +1,48 @@
+name: 🐛 Bug report
+description: Reporte um bug encontrado no projeto
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: O que aconteceu?
+      description: Descreva o bug de forma curta e objetiva.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir
+      description: Passo a passo mínimo pra reproduzir.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+
+  - type: input
+    id: environment
+    attributes:
+      label: Ambiente
+      description: "Ex: develop, staging, production. Qual a versão (`/version`)?"
+
+  - type: input
+    id: notion
+    attributes:
+      label: Card no Notion (se já houver)
+      description: "Unique ID do card (ex.: GFD-42) ou URL da página. Ver docs/07-tracking-notion.md."
+      placeholder: "GFD-42  (ou https://www.notion.so/...)"
+
+  - type: checkboxes
+    id: severity
+    attributes:
+      label: Urgência
+      options:
+        - label: 🔥 Hotfix — bug em production
+        - label: 🚧 Fix — bug só em staging ou develop
