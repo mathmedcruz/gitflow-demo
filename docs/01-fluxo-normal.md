@@ -1,9 +1,9 @@
-# Cenário 1 — Fluxo normal (feature → develop → release → master)
+# Cenário 1 — Fluxo normal (feature → develop → release → main)
 
 O **caminho feliz** do Git Flow:
 
 ```
-feature/x ──PR──► develop ──(release/0.2.0)──► master + tag v0.2.0
+feature/x ──PR──► develop ──(release/0.2.0)──► main + tag v0.2.0
                                               │
                                               └─ back-merge ──► develop
 ```
@@ -11,7 +11,7 @@ feature/x ──PR──► develop ──(release/0.2.0)──► master + tag 
 - Feature entra em `develop` via **PR + Squash and merge**.
 - Quando acumulou escopo suficiente, abre `release/X.Y.Z` a partir de `develop`.
 - Estabiliza na release branch (fixes de bugs descobertos em QA/staging).
-- Fecha com **dois merges**: `release/X.Y.Z → master` (+ tag) e `release/X.Y.Z → develop` (back-merge).
+- Fecha com **dois merges**: `release/X.Y.Z → main` (+ tag) e `release/X.Y.Z → develop` (back-merge).
 
 ---
 
@@ -94,22 +94,22 @@ git push -u origin bugfix/ajusta-validacao
 
 ---
 
-## 5) Fechar release: merge em `master` + tag + back-merge em `develop`
+## 5) Fechar release: merge em `main` + tag + back-merge em `develop`
 
 Quando QA aprovar:
 
 ```bash
-# 1. merge em master (PR release/0.2.0 → master, com MERGE COMMIT, não squash)
-gh pr create -B master -H release/0.2.0 \
+# 1. merge em main (PR release/0.2.0 → main, com MERGE COMMIT, não squash)
+gh pr create -B main -H release/0.2.0 \
   --title "release: 0.2.0" \
   --body "Release 0.2.0"
 # ... aprovação + merge pela UI (Create a merge commit) ...
 
-# 2. tag em master (localmente, ou via release do GitHub)
-git checkout master
-git pull --rebase origin master
+# 2. tag em main (localmente, ou via release do GitHub)
+git checkout main
+git pull --rebase origin main
 git tag -a v0.2.0 -m "Release 0.2.0"
-git push origin master --tags
+git push origin main --tags
 
 # 3. BACK-MERGE: release/0.2.0 → develop (para develop receber os fixes de estabilização)
 gh pr create -B develop -H release/0.2.0 \
@@ -125,7 +125,7 @@ git push origin --delete release/0.2.0
 - 🟢 Após aprovação → deploy em prod.
 - 🏷️ Tag `v0.2.0` fica visível em **Releases** no GitHub.
 
-> 💡 **Usa merge commit (não squash) nos 2 merges da release.** É essencial: `master` precisa ter o merge commit como "ponto de release" no histórico, e o back-merge em `develop` tem que preservar a linhagem da release branch. Squash quebraria essa rastreabilidade.
+> 💡 **Usa merge commit (não squash) nos 2 merges da release.** É essencial: `main` precisa ter o merge commit como "ponto de release" no histórico, e o back-merge em `develop` tem que preservar a linhagem da release branch. Squash quebraria essa rastreabilidade.
 
 ---
 
@@ -135,7 +135,7 @@ No Git Flow *tradicional* (Driessen), a release branch é onde você edita `pack
 
 - Zero commit de "chore: bump" poluindo histórico.
 - Zero conflito de merge em arquivo de versão entre release branches simultâneas.
-- Uma única fonte de verdade: a **tag anotada em `master`**.
+- Uma única fonte de verdade: a **tag anotada em `main`**.
 
 A versão em runtime vem de `APP_VERSION` (env var injetada no deploy — `git describe --tags --exact-match` no workflow). Ver [02-release-branch.md](02-release-branch.md#runtime-de-versão).
 
@@ -149,7 +149,7 @@ A versão em runtime vem de `APP_VERSION` (env var injetada no deploy — `git d
 | ------------- | --------------- | ------------------------------ |
 | develop       | `develop`       | `v0.1.0-7-gabc123`             |
 | staging (RC)  | `release/0.2.0` | `0.2.0-rc` (resolvido do nome) |
-| production    | `master`        | **`v0.2.0`** (tag exata)       |
+| production    | `main`        | **`v0.2.0`** (tag exata)       |
 
 Depois da release fechada e back-merge feito, `develop` também contém o merge da `release/0.2.0`. Linhagem preservada.
 
@@ -159,7 +159,7 @@ Depois da release fechada e back-merge feito, `develop` também contém o merge 
 
 - Features entram em `develop` a qualquer momento.
 - Abrir `release/X.Y.Z` em **dia fixo** (ex: quinta de manhã).
-- Fechar a release (merge em master + tag) quando QA aprovar (tipicamente mesmo dia ou próximo dia útil).
+- Fechar a release (merge em main + tag) quando QA aprovar (tipicamente mesmo dia ou próximo dia útil).
 
 ---
 

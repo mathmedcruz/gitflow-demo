@@ -1,15 +1,15 @@
 # Guia — Configurando o GitHub para Git Flow
 
-Este guia configura o repositório para **Git Flow profissional**: proteção em `master` e `develop`, environments para gate de production, CODEOWNERS, Conventional Commits no título do PR.
+Este guia configura o repositório para **Git Flow profissional**: proteção em `main` e `develop`, environments para gate de production, CODEOWNERS, Conventional Commits no título do PR.
 
-> **Resumo:** `master` só aceita PR vindo de `release/*` ou `hotfix/*`. `develop` aceita PR de `feature/*`, `bugfix/*`. Ninguém pushea direto. Production exige aprovação manual.
+> **Resumo:** `main` só aceita PR vindo de `release/*` ou `hotfix/*`. `develop` aceita PR de `feature/*`, `bugfix/*`. Ninguém pushea direto. Production exige aprovação manual.
 
 ---
 
 ## 📋 Checklist
 
 - [ ] 1. Criar a branch `develop`
-- [ ] 2. Proteger `master` e `develop` (Rulesets)
+- [ ] 2. Proteger `main` e `develop` (Rulesets)
 - [ ] 3. Configurar Environments (`develop`, `staging`, `production`)
 - [ ] 4. CODEOWNERS
 - [ ] 5. Padronizar título de PR
@@ -22,7 +22,7 @@ Este guia configura o repositório para **Git Flow profissional**: proteção em
 ## 1) Criar `develop`
 
 ```bash
-git checkout master
+git checkout main
 git pull
 git checkout -b develop
 git push -u origin develop
@@ -36,13 +36,13 @@ Em **Settings → Branches**, set `develop` como *default branch* (opcional — 
 
 **Settings → Rules → Rulesets → New branch ruleset**
 
-### Ruleset #1 — "Master protection"
+### Ruleset #1 — "Main protection"
 
 | Campo | Valor |
 | --- | --- |
-| **Name** | `Master protection` |
+| **Name** | `Main protection` |
 | **Enforcement** | Active |
-| **Target branches** | Include by pattern: `master` |
+| **Target branches** | Include by pattern: `main` |
 
 Regras:
 
@@ -52,14 +52,14 @@ Regras:
   - ✅ Dismiss stale approvals
   - ✅ Require review from Code Owners
   - ✅ Require conversation resolution
-  - **Allowed merge methods:** apenas **Merge commit** (squash e rebase desmarcados pra master)
+  - **Allowed merge methods:** apenas **Merge commit** (squash e rebase desmarcados pra main)
 - ✅ **Restrict updates** — apenas bypass list pode atualizar diretamente
 - ✅ **Require status checks**
   - `CI / Lint & Testes`
   - `PR title lint / Valida título do PR (Conventional Commits)`
 - ✅ **Block force pushes**
 
-**Extra (opcional mas útil):** use a UI de rulesets pra exigir que o PR pra master só possa vir de branches que casem com `release/**` ou `hotfix/**`. Isso evita `feature/* → master` acidental. Se o ruleset não suporta essa regra diretamente, cubra com review manual do release manager.
+**Extra (opcional mas útil):** use a UI de rulesets pra exigir que o PR pra main só possa vir de branches que casem com `release/**` ou `hotfix/**`. Isso evita `feature/* → main` acidental. Se o ruleset não suporta essa regra diretamente, cubra com review manual do release manager.
 
 ### Ruleset #2 — "Develop protection"
 
@@ -83,7 +83,7 @@ Regras:
 
 | Branch     | Exige PR? | Merge method aceito        | Force-push? |
 | ---------- | --------- | -------------------------- | ----------- |
-| `master`   | ✅        | **Merge commit** apenas    | ❌          |
+| `main`   | ✅        | **Merge commit** apenas    | ❌          |
 | `develop`  | ✅        | Squash (feature) + Merge commit (back-merge) | ❌ |
 | `release/*`| ❌        | N/A (push direto permitido em bugfixes dela via PR pra ela) | ❌ |
 | `hotfix/*` | ❌        | idem                       | ❌          |
@@ -98,7 +98,7 @@ Regras:
 | ------------- | ------------------ | ----------------------------------- |
 | `develop`     | —                  | `develop`                           |
 | `staging`     | — (ou 1)           | `release/*`                         |
-| `production`  | **1 ou 2 pessoas** | `master` (e opcionalmente `refs/tags/v*`) |
+| `production`  | **1 ou 2 pessoas** | `main` (e opcionalmente `refs/tags/v*`) |
 
 Secrets e variáveis por ambiente separados (`DATABASE_URL` de prod não aparece em develop).
 
@@ -121,7 +121,7 @@ Já criamos `.github/workflows/pr-lint.yml` que valida o prefixo (`feat`, `fix`,
 - ❌ **Allow rebase merging** — desmarque.
 - ✅ **Automatically delete head branches** — limpa feature/bugfix/hotfix branches após merge.
 
-> 💡 O Git Flow *exige* merge commits em release/hotfix pra preservar o "ponto de release" no grafo de `master`. Squash em release quebraria isso.
+> 💡 O Git Flow *exige* merge commits em release/hotfix pra preservar o "ponto de release" no grafo de `main`. Squash em release quebraria isso.
 
 ---
 
@@ -132,9 +132,9 @@ Já criamos `.github/workflows/pr-lint.yml` que valida o prefixo (`feat`, `fix`,
 | `feature/* → develop`                      | PR (UI)        | **Squash merge** |
 | `bugfix/* → develop`                       | PR (UI)        | **Squash merge** |
 | `bugfix/* → release/X.Y.Z` (estabilização) | PR (UI)        | **Squash merge** |
-| `release/X.Y.Z → master`                   | PR (UI)        | **Merge commit** |
+| `release/X.Y.Z → main`                   | PR (UI)        | **Merge commit** |
 | `release/X.Y.Z → develop` (back-merge)     | PR (UI)        | **Merge commit** |
-| `hotfix/X.Y.Z → master`                    | PR (UI)        | **Merge commit** |
+| `hotfix/X.Y.Z → main`                    | PR (UI)        | **Merge commit** |
 | `hotfix/X.Y.Z → develop` (back-merge)      | PR (UI)        | **Merge commit** |
 
 ---
@@ -164,13 +164,13 @@ Já criamos `.github/workflows/pr-lint.yml` que valida o prefixo (`feat`, `fix`,
 
 ## 🎓 Teste de fumaça
 
-1. Push direto em `master` → **rejeitado**.
+1. Push direto em `main` → **rejeitado**.
 2. Push direto em `develop` → **rejeitado**.
 3. PR `feature/x → develop` com título inválido → **check falha**.
 4. PR `feature/x → develop` válido → squash merge → `deploy-develop` dispara → ambiente `develop` atualizado.
 5. Criar `release/0.2.0`, push → `deploy-release` dispara → RC em staging.
-6. PR `release/0.2.0 → master` (merge commit) → deploy prod pausa pra aprovação.
-7. Tag `v0.2.0` em master → deploy roda com APP_VERSION correto.
+6. PR `release/0.2.0 → main` (merge commit) → deploy prod pausa pra aprovação.
+7. Tag `v0.2.0` em main → deploy roda com APP_VERSION correto.
 8. PR `release/0.2.0 → develop` (back-merge) → develop atualizado.
 
 Se os 8 passos passam, Git Flow está configurado. 🎉

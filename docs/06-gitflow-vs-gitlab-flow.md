@@ -6,7 +6,7 @@ Os dois modelos resolvem o mesmo problema — **como organizar o trabalho do tim
 
 ## 🎯 Resumo em 1 parágrafo
 
-- **Git Flow (2010, Vincent Driessen)** — pensado pra produtos com **releases planejadas**, múltiplas versões suportadas em paralelo, e time de QA dedicado. Usa branches permanentes (`master`, `develop`) + branches de fluxo (`release/*`, `hotfix/*`). Merges pra tudo.
+- **Git Flow (2010, Vincent Driessen)** — pensado pra produtos com **releases planejadas**, múltiplas versões suportadas em paralelo, e time de QA dedicado. Usa branches permanentes (`main`, `develop`) + branches de fluxo (`release/*`, `hotfix/*`). Merges pra tudo.
 - **GitLab Flow (2014, GitLab)** — pensado pra produtos com **deploy contínuo** ou quase contínuo, poucas versões em paralelo. Usa `main` + branches de ambiente (`staging`, `production`). Cherry-pick pra hotfix.
 
 ---
@@ -15,16 +15,16 @@ Os dois modelos resolvem o mesmo problema — **como organizar o trabalho do tim
 
 | Aspecto                      | Git Flow                                            | GitLab Flow (env branches)                          |
 | ---------------------------- | --------------------------------------------------- | --------------------------------------------------- |
-| **Branches permanentes**     | 2 (`master`, `develop`)                             | 3 (`main`, `staging`, `production`)                 |
+| **Branches permanentes**     | 2 (`main`, `develop`)                             | 3 (`main`, `staging`, `production`)                 |
 | **Onde features entram**     | `develop`                                           | `main`                                              |
-| **Produção está em**         | `master` (com tag)                                  | `production` (com tag)                              |
+| **Produção está em**         | `main` (com tag)                                  | `production` (com tag)                              |
 | **Staging está em**          | `release/X.Y.Z` (temporária) → deploy em staging    | branch `staging` (permanente)                       |
-| **Hotfix: operação git**     | Merge em `master` + merge em `develop` (back-merge) | Cherry-pick pra `staging` e `production`            |
-| **Número de PRs no hotfix**  | 2-3 (master, develop, release aberta se houver)     | 1 (pra `main`) + 2 cherry-picks sem PR              |
+| **Hotfix: operação git**     | Merge em `main` + merge em `develop` (back-merge) | Cherry-pick pra `staging` e `production`            |
+| **Número de PRs no hotfix**  | 2-3 (main, develop, release aberta se houver)     | 1 (pra `main`) + 2 cherry-picks sem PR              |
 | **Release branch**           | Sim — `release/X.Y.Z` congela escopo                | Não — `main` é promovido quando pronto              |
 | **Back-merge obrigatório?**  | Sim — release → develop, hotfix → develop           | Não — upstream-first faz o trabalho naturalmente    |
 | **Conflitos no dia-a-dia**   | Concentrados no back-merge                          | Concentrados no cherry-pick                         |
-| **Histórico em `master`/`production`** | Merge commits (visível cada release como "bolha") | Fast-forward / cherry-pick de commits individuais |
+| **Histórico em `main`/`production`** | Merge commits (visível cada release como "bolha") | Fast-forward / cherry-pick de commits individuais |
 | **Complexidade de fluxo**    | Mais alta (5 tipos de branch, 2 back-merges típicos) | Mais baixa (3 branches, operações diretas)         |
 | **Tempo até prod**           | Mais lento (release branch estabiliza por dias)     | Mais rápido (main → staging → production)           |
 | **Suporte a versões paralelas** | Bom (`support/X.Y.Z` no Git Flow estendido)       | Ruim — um canal só                                  |
@@ -72,10 +72,10 @@ Cherry-pick é cirúrgico e rápido. Sem release branch, sem back-merge. Preço:
 
 ### De Git Flow pra GitLab Flow
 
-1. Renomeie `develop → main` (ou manteve `master` e crie `main` — mas prefira um só).
+1. Consolide `develop` em `main` — GitLab Flow usa um único branch de integração.
 2. Crie `staging` e `production` a partir de `main`.
 3. Pare de criar `release/*` — promova `main → staging → production` via `git merge --no-ff` local.
-4. Troque `hotfix/* → master + develop` por `hotfix/* → main` com cherry-pick.
+4. Troque `hotfix/* → main + develop` por `hotfix/* → main` com cherry-pick.
 5. Atualize proteções de branch (ruleset novo).
 
 Ver o projeto irmão [gitlab-flow-demo](../../gitlab-flow-demo) pra como fica o setup final.
@@ -83,9 +83,9 @@ Ver o projeto irmão [gitlab-flow-demo](../../gitlab-flow-demo) pra como fica o 
 ### De GitLab Flow pra Git Flow
 
 1. Renomeie `main → develop` (ou mantenha `main` e adicione `develop` — mas idealmente um só fluxo entra).
-2. Crie `master` a partir do último commit em `production` (ou da última tag).
+2. Crie `main` a partir do último commit em `production` (ou da última tag).
 3. Deprecate a branch `staging` — passa a usar `release/*` como staging.
-4. Deprecate a branch `production` — `master` vira o que era `production`.
+4. Deprecate a branch `production` — `main` vira o que era `production`.
 5. Treine o time pra "release branch + back-merge" — é o hábito novo.
 
 Raro migrar nessa direção (normalmente é o contrário), mas possível.

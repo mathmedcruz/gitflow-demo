@@ -1,6 +1,6 @@
 # Changelog
 
-Este arquivo documenta as mudanças entre versões/releases tagueadas em **master**.
+Este arquivo documenta as mudanças entre versões/releases tagueadas em **main**.
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
@@ -11,5 +11,5 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 ### Adicionado
 
 - Estrutura inicial do projeto (app FastAPI com `/`, `/health`, `/version`).
-- Workflows de CI e deploy para os ambientes **develop** (`develop`), **staging** (`release/*`) e **production** (`master`).
+- Workflows de CI e deploy para os ambientes **develop** (`develop`), **staging** (`release/*`) e **production** (`main`).
 - Documentação dos cenários de Git Flow em `docs/`.

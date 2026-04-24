@@ -49,10 +49,10 @@ jobs:
             exit 0
           fi
 
-          # release/* ou hotfix/* -> master : não exige link (já veio dos PRs internos)
-          if [[ "$BASE_REF" == "master" ]] && [[ "$HEAD_REF" =~ ^(release|hotfix)/ ]]; then
+          # release/* ou hotfix/* -> main : não exige link (já veio dos PRs internos)
+          if [[ "$BASE_REF" == "main" ]] && [[ "$HEAD_REF" =~ ^(release|hotfix)/ ]]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Motivo: PR de $HEAD_REF -> master."
+            echo "Motivo: PR de $HEAD_REF -> main."
             exit 0
           fi
 
