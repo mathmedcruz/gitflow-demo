@@ -32,6 +32,11 @@ def version():
     }
 
 
+@app.get("/demo")
+def demo():
+    return {"message": "Esta é uma rota de demonstração."}
+
+
 if __name__ == "__main__":
     import uvicorn
 
