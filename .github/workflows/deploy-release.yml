@@ -1,0 +1,77 @@
+name: Deploy • staging (release/*)
+
+on:
+  push:
+    branches: ['release/**']
+
+concurrency:
+  group: deploy-release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy release branch para staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.exemplo.local
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Rodar testes
+        run: pytest -q
+
+      - name: Resolver versão candidata
+        id: meta
+        run: |
+          # release/0.2.0 → candidata = 0.2.0
+          CANDIDATE="${GITHUB_REF_NAME#release/}"
+          echo "candidate=$CANDIDATE" >> "$GITHUB_OUTPUT"
+          echo "sha_short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: 🚀 Simulando deploy para STAGING (RC)
+        env:
+          APP_ENV: staging
+          APP_VERSION: ${{ steps.meta.outputs.candidate }}-rc
+          SHA: ${{ steps.meta.outputs.sha_short }}
+        run: |
+          echo "=============================================="
+          echo " Ambiente : $APP_ENV"
+          echo " Candidata: $APP_VERSION"
+          echo " Commit   : $SHA"
+          echo " Branch   : ${GITHUB_REF_NAME}"
+          echo "=============================================="
+          echo "→ build de release candidate..."
+          sleep 1
+          echo "→ smoke tests..."
+          sleep 1
+          echo "→ publicando RC em staging..."
+          sleep 1
+          echo "✅ Deploy RC para STAGING concluído."
+
+      - name: Resumo no GitHub
+        run: |
+          {
+            echo "### 🚀 Release candidate em STAGING"
+            echo ""
+            echo "- **Candidata:** \`${{ steps.meta.outputs.candidate }}-rc\`"
+            echo "- **Branch:** \`${GITHUB_REF_NAME}\`"
+            echo "- **Commit:** \`${{ steps.meta.outputs.sha_short }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

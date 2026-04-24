@@ -1,0 +1,29 @@
+name: ✨ Feature request
+description: Proponha uma nova funcionalidade
+title: "[feat]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qual problema essa feature resolve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposta
+      description: Como você imagina que isso funcione?
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+
+  - type: input
+    id: notion
+    attributes:
+      label: Página no Notion (se já houver)
+      description: "URL da página/card do Notion que rastreia esta feature. Ver docs/07-tracking-notion.md."
+      placeholder: "https://www.notion.so/..."
